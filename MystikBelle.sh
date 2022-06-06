@@ -42,7 +42,7 @@ cd $GAMEDIR
 
 $ESUDO rm -rf ~/.config/MystikBelle
 $ESUDO ln -s /$GAMEDIR/conf/MystikBelle ~/.config/
-$GPTOKEYB "box86" &
+$GPTOKEYB "box86" -c "./mystik-belle.gptk" &
 $TASKSET $BINDIR/box86 $GAMEDIR/runner
 $ESUDO kill -9 $(pidof gptokeyb)
 $ESUDO systemctl restart oga_events &
