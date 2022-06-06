@@ -1,33 +1,25 @@
 #!/bin/bash
 
-ESUDO="sudo"
-if [ -f "/storage/.config/.OS_ARCH" ]; then
-  ESUDO=""
+if [ -d "/opt/system/Tools/PortMaster/" ]; then
+  controlfolder="/opt/system/Tools/PortMaster"
+elif [ -d "/opt/tools/PortMaster/" ]; then
+  controlfolder="/opt/tools/PortMaster"
+elif [ -d "/roms/ports" ]; then
+  controlfolder="/roms/ports/PortMaster"
+ elif [ -d "/roms2/ports" ]; then
+  controlfolder="/roms2/ports/PortMaster"
+else
+  controlfolder="/storage/roms/ports/PortMaster"
 fi
 
-if [[ -e "/dev/input/by-path/platform-ff300000.usb-usb-0:1.2:1.0-event-joystick" ]]; then
-  param_device="anbernic"
-elif [[ -e "/dev/input/by-path/platform-odroidgo2-joypad-event-joystick" ]]; then
-    if [[ ! -z $(cat /etc/emulationstation/es_input.cfg | grep "190000004b4800000010000001010000") ]]; then
-	  param_device="oga"
-	else
-	  param_device="rk2020"
-	fi
-elif [[ -e "/dev/input/by-path/platform-odroidgo3-joypad-event-joystick" ]]; then
-  param_device="ogs"
-else
-  param_device="chi"
-fi
+source $controlfolder/control.txt
+source $controlfolder/tasksetter
 
-if [ -f "/opt/system/Advanced/Switch to main SD for Roms.sh" ]; then
-  GAMEDIR="/roms2/ports/MystikBelle"
-  LIBDIR="/roms2/ports/MystikBelle/lib32"
-  BINDIR="/roms2/ports/MystikBelle/box86"
-else
-  GAMEDIR="/roms/ports/MystikBelle"
-  LIBDIR="/roms/ports/MystikBelle/lib32"
-  BINDIR="/roms/ports/MystikBelle/box86"
-fi
+get_controls
+
+GAMEDIR="/$directory/ports/MystikBelle"
+LIBDIR="/$directory/ports/MystikBelle/lib32"
+BINDIR="/$directory/ports/MystikBelle/box86"
 
 #BOX86 LOG
 export BOX86_LOG=1
@@ -46,13 +38,12 @@ export BOX86_PATH=$BINDIR/lib/libstdc++.so.6
 export BOX86_NOGTK=1
 export BOX86_DYNAREC=1
 
-
 cd $GAMEDIR
 
 $ESUDO rm -rf ~/.config/MystikBelle
 $ESUDO ln -s /$GAMEDIR/conf/MystikBelle ~/.config/
-$ESUDO ./oga_controls box86 $param_device &
-$BINDIR/box86 $GAMEDIR/runner
-$ESUDO kill -9 $(pidof oga_controls)
+$GPTOKEYB "box86" &
+$TASKSET $BINDIR/box86 $GAMEDIR/runner
+$ESUDO kill -9 $(pidof gptokeyb)
 $ESUDO systemctl restart oga_events &
 printf "\033c" >> /dev/tty1
